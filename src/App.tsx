@@ -5,7 +5,7 @@ import type { Artwork } from "./types";
 import { INITIAL_ARTWORKS, AVATAR_URL } from './constants';
 import AdminPanel from "./AdminPanel";
 
-// Declaración para TypeScript
+// Declaración para que TypeScript reconozca el objeto de PayPal en el window
 declare global {
   interface Window {
     paypal: any;
@@ -212,59 +212,79 @@ const ArtworkDetail: React.FC<{ artworks: Artwork[] }> = ({ artworks }) => {
   useEffect(() => {
     if (!artwork) return;
 
-    const renderButton = () => {
-      const container = document.getElementById("paypal-container-P9L8BLPS8V6N6");
+    const currentButtonId = "A9SQ5MXVVRSHQ";
+    const containerId = `paypal-container-${currentButtonId}`;
+
+    const renderPayPal = () => {
+      const container = document.getElementById(containerId);
       if (container && window.paypal && window.paypal.HostedButtons) {
-        container.innerHTML = ''; // Evitar duplicados
+        container.innerHTML = ''; // Limpiar previo
         window.paypal.HostedButtons({
-          hostedButtonId: "P9L8BLPS8V6N6",
-        }).render("#paypal-container-P9L8BLPS8V6N6");
+          hostedButtonId: currentButtonId,
+        }).render(`#${containerId}`);
       }
     };
 
-    // Intentamos renderizar. Si el SDK aún no carga (desde index.html), esperamos un poco.
-    if (window.paypal) {
-      renderButton();
-    } else {
-      const checkPaypal = setInterval(() => {
-        if (window.paypal) {
-          renderButton();
-          clearInterval(checkPaypal);
-        }
-      }, 500);
-      return () => clearInterval(checkPaypal);
-    }
-  }, [artwork]);
+    // Esperar a que el DOM esté listo
+    const timeout = setTimeout(() => {
+      if (window.paypal) {
+        renderPayPal();
+      } else {
+        const interval = setInterval(() => {
+          if (window.paypal) {
+            renderPayPal();
+            clearInterval(interval);
+          }
+        }, 500);
+        return () => clearInterval(interval);
+      }
+    }, 100);
 
-  if (!artwork) return <div className="pt-56 text-center font-black text-black text-2xl">Obra no encontrada</div>;
+    return () => clearTimeout(timeout);
+  }, [artwork, id]);
+
+  if (!artwork) return <div className="pt-56 text-center font-black text-black text-2xl uppercase tracking-widest">Obra no encontrada</div>;
 
   return (
     <div className="pt-40 pb-32 px-6 max-w-7xl mx-auto animate-in">
-      <button onClick={() => navigate(-1)} className="flex items-center gap-3 text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-20 hover:text-black transition-colors"><ChevronLeft size={20} /> Volver a la colección</button>
+      <button onClick={() => navigate(-1)} className="flex items-center gap-3 text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-20 hover:text-black transition-colors">
+        <ChevronLeft size={20} /> Volver a la colección
+      </button>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-28 items-start">
-        <div className="relative rounded-[70px] overflow-hidden shadow-3xl bg-white border border-gray-100 group">
+        <div className="relative rounded-[70px] overflow-hidden shadow-3xl bg-white border border-gray-100">
           <img src={artwork.previewUrl} className="w-full h-auto blur-md opacity-90 scale-105" alt={artwork.title} />
           <div className="absolute inset-0 watermark-overlay opacity-40" />
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-6">
-             <span className="text-4xl md:text-6xl font-black text-white/20 tracking-[1em] select-none whitespace-nowrap rotate-12">AMY CUSTOM</span>
+             <span className="text-4xl md:text-6xl font-black text-white/20 tracking-[1em] rotate-12">AMY CUSTOM</span>
              <span className="bg-black/40 backdrop-blur-xl border border-white/10 text-white px-10 py-5 rounded-full font-black uppercase tracking-[0.5em] text-xs">Preview Protegido</span>
           </div>
         </div>
+
         <div className="lg:sticky lg:top-40">
           <span className="text-sm font-black text-pink-500 uppercase tracking-[0.5em] mb-8 block">{artwork.category}</span>
-          <h2 className="text-6xl md:text-[5.5rem] font-black tracking-tighter mb-10 text-black leading-[0.9]">{artwork.title}</h2>
+          <h2 className="text-6xl md:text-[5.5rem] font-black tracking-tighter mb-10 text-black leading-[0.9] uppercase">{artwork.title}</h2>
+          
           <div className="grid grid-cols-2 gap-10 mb-14">
-             <div className="border-l-4 border-pink-500 pl-6"><p className="text-[11px] font-black uppercase text-gray-400 mb-1">Colección</p><p className="font-black text-black text-xl">{artwork.year}</p></div>
-             <div className="border-l-4 border-pink-500 pl-6"><p className="text-[11px] font-black uppercase text-gray-400 mb-1">Archivo</p><p className="font-black text-black text-xl">{artwork.fileType}</p></div>
+             <div className="border-l-4 border-pink-500 pl-6">
+               <p className="text-[11px] font-black uppercase text-gray-400 mb-1">Colección</p>
+               <p className="font-black text-black text-xl">{artwork.year}</p>
+             </div>
+             <div className="border-l-4 border-pink-500 pl-6">
+               <p className="text-[11px] font-black uppercase text-gray-400 mb-1">Archivo</p>
+               <p className="font-black text-black text-xl">{artwork.fileType}</p>
+             </div>
           </div>
+
           <p className="text-2xl text-gray-500 leading-relaxed mb-14 font-medium">{artwork.description}</p>
+          
           <div className="flex flex-col gap-4 py-10 border-y border-gray-100 mb-14 text-center md:text-left">
              <span className="text-2xl font-black text-gray-400 uppercase tracking-widest">TOTAL A PAGAR</span>
              <span className="text-6xl md:text-7xl font-black tracking-tighter text-black">US {artwork.price.toFixed(2)}</span>
           </div>
 
-          {/* Contenedor PayPal que React inyectará */}
-          <div id="paypal-container-P9L8BLPS8V6N6" className="min-h-[150px]"></div>
+          {/* CONTENEDOR DE PAYPAL ACTUALIZADO */}
+          <div id="paypal-container-A9SQ5MXVVRSHQ" className="min-h-[150px]"></div>
 
           <div className="mt-12 flex items-center gap-4 text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 justify-center">
              <ShieldCheck size={18} className="text-green-500" /> Pago Cifrado • Entrega Digital Inmediata
@@ -327,17 +347,17 @@ export default function App() {
                     onSubmit={handleAdminLogin}
                     className="bg-white p-12 rounded-[3rem] shadow-xl border border-gray-100 text-center"
                   >
-                    <h2 className="text-3xl font-black mb-8">Acceso Admin</h2>
+                    <h2 className="text-3xl font-black mb-8 uppercase tracking-tighter">Acceso Admin</h2>
                     <input
                       type="password"
                       value={adminPasswordInput}
                       onChange={(e) => setAdminPasswordInput(e.target.value)}
                       placeholder="Contraseña"
-                      className="w-full px-6 py-4 rounded-2xl border border-gray-200 text-center font-bold mb-6"
+                      className="w-full px-6 py-4 rounded-2xl border border-gray-200 text-center font-bold mb-6 focus:ring-2 focus:ring-black outline-none transition-all"
                     />
                     <button
                       type="submit"
-                      className="w-full py-5 bg-black text-white rounded-2xl font-bold hover:bg-gray-900 transition"
+                      className="w-full py-5 bg-black text-white rounded-2xl font-bold hover:bg-gray-900 transition uppercase tracking-widest text-xs"
                     >
                       Entrar
                     </button>
