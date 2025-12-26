@@ -40,7 +40,7 @@ const PayPalButton: React.FC<{ artworkId: string }> = ({ artworkId }) => {
         return;
       }
       const script = document.createElement('script');
-      script.src = "https://www.paypal.com/sdk/js?client-id=BAAfJLtzlZrYl7vKrmAmYreQLKZPst6RyaKshgnd_7Pyds6fri0E4jNQK8MznlNcXE6narxpMnU2LtD5mo&components=hosted-buttons&disable-funding=venmo&currency=USD";
+      script.src = "https://www.paypal.com/sdk/js?client-id=AejV5JTSsf1NSjkWmwpZbmqCkxDcMzH7L4AiPf-qMiHvCIZLupqwYkzZq2gLkgRi8GcN-zUDSlANjd3y&components=hosted-buttons&disable-funding=venmo&currency=USD";
       script.async = true;
       script.onload = () => { if (isMounted) renderButton(); };
       script.onerror = () => { if (isMounted) setStatus('error'); };
