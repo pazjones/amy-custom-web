@@ -3,6 +3,9 @@ import { HashRouter as Router, Routes, Route, Link, useNavigate, useParams } fro
 import { ShoppingBag, ChevronLeft, ArrowRight, Instagram, Mail, Menu, X, Palette, Sparkles, Send, ShieldCheck, Shirt, Brush } from 'lucide-react';
 import type { Artwork } from "./types";
 import { INITIAL_ARTWORKS, AVATAR_URL } from './constants';
+import AdminPanel from "./AdminPanel";
+
+
 
 declare global {
   interface Window {
@@ -233,7 +236,7 @@ const Gallery: React.FC<{ artworks: Artwork[] }> = ({ artworks }) => (
     {artworks.map(art => (
       <Link key={art.id} to={`/artwork/${art.id}`} className="group block">
         <div className="aspect-[3/4] bg-gray-100 rounded-[50px] overflow-hidden mb-10 relative border border-gray-100 shadow-sm group-hover:shadow-3xl transition-all duration-700">
-          <img src={art.previewUrl} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 opacity-90" />
+          <img src={art.previewUrl} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 opacity-90 blur-md" />
           <div className="absolute inset-0 watermark-overlay opacity-40" />
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
              <span className="bg-black/20 backdrop-blur-md text-white/80 px-6 py-3 rounded-full font-black uppercase tracking-[0.4em] text-[10px] border border-white/10">Preview Protegido</span>
@@ -298,16 +301,100 @@ const ArtworkDetail: React.FC<{ artworks: Artwork[] }> = ({ artworks }) => {
 export default function App() {
   const [artworks] = useState<Artwork[]>(INITIAL_ARTWORKS);
 
+  const ADMIN_PASSWORD = "@Negrita2000"; // ⚠️ cámbiala luego o muévela a env
+
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [adminPasswordInput, setAdminPasswordInput] = useState("");
+  const [authError, setAuthError] = useState(false);
+
+  const handleAdminLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (adminPasswordInput === ADMIN_PASSWORD) {
+      setIsAdminAuthenticated(true);
+      setAuthError(false);
+      setAdminPasswordInput("");
+    } else {
+      setAuthError(true);
+    }
+  };
+
+  const handleAdminLogout = () => {
+    setIsAdminAuthenticated(false);
+  };
+
   return (
     <Router>
       <div className="min-h-screen bg-white">
         <Navbar />
+
         <Routes>
-          <Route path="/" element={<><Hero /><CollectionHeader /><Gallery artworks={artworks} /><Services /><Footer /></>} />
-          <Route path="/artwork/:id" element={<ArtworkDetail artworks={artworks} />} />
-          <Route path="/admin" element={<div className="pt-56 text-center font-black uppercase tracking-[0.4em] text-gray-300">Área Restringida</div>} />
+          <Route
+            path="/"
+            element={
+              <>
+                <Hero />
+                <CollectionHeader />
+                <Gallery artworks={artworks} />
+                <Services />
+                <Footer />
+              </>
+            }
+          />
+
+          <Route
+            path="/artwork/:id"
+            element={<ArtworkDetail artworks={artworks} />}
+          />
+
+          <Route
+            path="/admin"
+            element={
+              !isAdminAuthenticated ? (
+                <div className="pt-56 max-w-md mx-auto px-6">
+                  <form
+                    onSubmit={handleAdminLogin}
+                    className="bg-white p-12 rounded-[3rem] shadow-xl border border-gray-100 text-center"
+                  >
+                    <h2 className="text-3xl font-black mb-8">
+                      Acceso Admin
+                    </h2>
+
+                    <input
+                      type="password"
+                      value={adminPasswordInput}
+                      onChange={(e) =>
+                        setAdminPasswordInput(e.target.value)
+                      }
+                      placeholder="Contraseña"
+                      className="w-full px-6 py-4 rounded-2xl border border-gray-200 text-center font-bold mb-6"
+                    />
+
+                    <button
+                      type="submit"
+                      className="w-full py-5 bg-black text-white rounded-2xl font-bold hover:bg-gray-900 transition"
+                    >
+                      Entrar
+                    </button>
+
+                    {authError && (
+                      <p className="text-red-500 mt-4 text-xs font-bold uppercase tracking-widest">
+                        Acceso denegado
+                      </p>
+                    )}
+                  </form>
+                </div>
+              ) : (
+                <AdminPanel
+                  artworks={artworks}
+                  onLogout={handleAdminLogout}
+                />
+              )
+            }
+          />
         </Routes>
       </div>
     </Router>
   );
-}
+};
+
