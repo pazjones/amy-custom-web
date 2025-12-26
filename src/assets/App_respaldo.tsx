@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { HashRouter as Router, Routes, Route, Link, useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, ArrowRight, Instagram, Mail, Menu, X, Shirt, Brush, ShieldCheck, Send } from 'lucide-react';
+import { ShoppingBag, ChevronLeft, ArrowRight, Instagram, Mail, Menu, X, Palette, Sparkles, Send, ShieldCheck, Shirt, Brush } from 'lucide-react';
 import type { Artwork } from "./types";
 import { INITIAL_ARTWORKS, AVATAR_URL } from './constants';
 import AdminPanel from "./AdminPanel";
 
-// Declaración para que TypeScript no marque error con el SDK de PayPal
+
+
 declare global {
   interface Window {
     paypal: any;
@@ -28,6 +29,56 @@ const TikTokIcon = ({ size = 24, className = "" }) => (
     <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
   </svg>
 );
+
+const PayPalButton: React.FC<{ artworkId: string }> = ({ artworkId }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const buttonId = "paypal-container-P9L8BLPS8V6N6";
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadPayPalScript = () => {
+      if (window.paypal && window.paypal.HostedButtons) {
+        renderButton();
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = "https://www.paypal.com/sdk/js?client-id=BAAfJLtzlZrYl7vKrmAmYreQLKZPst6RyaKshgnd_7Pyds6fri0E4jNQK8MznlNcXE6narxpMnU2LtD5mo&components=hosted-buttons&disable-funding=venmo&currency=USD";
+      script.async = true;
+      script.onload = () => { if (isMounted) renderButton(); };
+      script.onerror = () => { if (isMounted) setStatus('error'); };
+      document.body.appendChild(script);
+    };
+
+    const renderButton = () => {
+      if (!isMounted || !containerRef.current) return;
+      try {
+        containerRef.current.innerHTML = '';
+        window.paypal.HostedButtons({ hostedButtonId: "P9L8BLPS8V6N6" }).render(`#${buttonId}`)
+        .then(() => { if (isMounted) setStatus('ready'); })
+        .catch((err: any) => { console.error("PayPal Error:", err); if (isMounted) setStatus('error'); });
+      } catch (err) { if (isMounted) setStatus('error'); }
+    };
+
+    loadPayPalScript();
+    return () => { isMounted = false; };
+  }, [artworkId]);
+
+  return (
+    <div className="w-full mt-8">
+      <div className="bg-white border border-gray-100 rounded-[32px] p-8 shadow-xl shadow-gray-200/50 min-h-[200px] flex flex-col justify-center">
+        {status === 'loading' && (
+          <div className="flex flex-col items-center gap-4 py-8">
+            <div className="w-8 h-8 border-4 border-gray-100 border-t-black rounded-full animate-spin"></div>
+            <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Conectando pasarela...</p>
+          </div>
+        )}
+        {status === 'error' && <p className="text-center text-xs font-bold text-red-500">Error en la conexión. Reintenta.</p>}
+        <div id={buttonId} ref={containerRef} className={status === 'ready' ? 'block animate-in' : 'hidden'} />
+      </div>
+    </div>
+  );
+};
 
 const MobileMenu = ({ onClose }: { onClose: () => void }) => (
   <div className="fixed inset-0 bg-black/95 text-white z-[9999] flex flex-col p-12 overflow-y-auto">
@@ -94,6 +145,7 @@ const Navbar: React.FC = () => {
   );
 };
 
+
 const Hero: React.FC = () => (
   <header className="pt-56 pb-24 px-6 flex flex-col items-center text-center bg-white">
     <div className="w-32 h-32 rounded-full overflow-hidden mb-12 border-4 border-gray-50 shadow-2xl">
@@ -140,6 +192,7 @@ const Services: React.FC = () => (
           </ul>
         </div>
         <div className="bg-gray-50 rounded-[80px] p-10 md:p-16 flex flex-col justify-center items-center border border-gray-100 shadow-sm relative overflow-hidden group md:aspect-square">
+
            <div className="absolute inset-0 bg-gradient-to-br from-pink-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
            <div className="text-center relative z-10">
               <Send size={64} className="mx-auto mb-10 text-gray-200" />
@@ -183,7 +236,7 @@ const Gallery: React.FC<{ artworks: Artwork[] }> = ({ artworks }) => (
     {artworks.map(art => (
       <Link key={art.id} to={`/artwork/${art.id}`} className="group block">
         <div className="aspect-[3/4] bg-gray-100 rounded-[50px] overflow-hidden mb-10 relative border border-gray-100 shadow-sm group-hover:shadow-3xl transition-all duration-700">
-          <img src={art.previewUrl} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 opacity-90 blur-md" alt={art.title} />
+          <img src={art.previewUrl} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 opacity-90 blur-md" />
           <div className="absolute inset-0 watermark-overlay opacity-40" />
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
              <span className="bg-black/20 backdrop-blur-md text-white/80 px-6 py-3 rounded-full font-black uppercase tracking-[0.4em] text-[10px] border border-white/10">Preview Protegido</span>
@@ -209,30 +262,6 @@ const ArtworkDetail: React.FC<{ artworks: Artwork[] }> = ({ artworks }) => {
   const artwork = artworks.find(a => a.id === id);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!artwork) return;
-
-    const renderPayPal = () => {
-      const container = document.getElementById("paypal-container-P9L8BLPS8V6N6");
-      if (container && window.paypal && window.paypal.HostedButtons) {
-        container.innerHTML = ''; // Limpia el contenedor antes de renderizar
-        window.paypal.HostedButtons({
-          hostedButtonId: "P9L8BLPS8V6N6",
-        }).render("#paypal-container-P9L8BLPS8V6N6");
-      }
-    };
-
-    if (window.paypal) {
-      renderPayPal();
-    } else {
-      const script = document.createElement("script");
-      script.src = "https://www.paypal.com/sdk/js?client-id=BAAfJLtzlZrYl7vKrmAmYreQLKZPst6RyaKshgnd_7Pyds6fri0E4jNQK8MznlNcXE6narxpMnU2LtD5mo&components=hosted-buttons&currency=USD";
-      script.async = true;
-      script.onload = renderPayPal;
-      document.body.appendChild(script);
-    }
-  }, [artwork]);
-
   if (!artwork) return <div className="pt-56 text-center font-black text-black text-2xl">Obra no encontrada</div>;
 
   return (
@@ -240,7 +269,7 @@ const ArtworkDetail: React.FC<{ artworks: Artwork[] }> = ({ artworks }) => {
       <button onClick={() => navigate(-1)} className="flex items-center gap-3 text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-20 hover:text-black transition-colors"><ChevronLeft size={20} /> Volver a la colección</button>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-28 items-start">
         <div className="relative rounded-[70px] overflow-hidden shadow-3xl bg-white border border-gray-100 group">
-          <img src={artwork.previewUrl} className="w-full h-auto blur-md opacity-90 scale-105" alt={artwork.title} />
+          <img src={artwork.previewUrl} className="w-full h-auto blur-md opacity-90 scale-105" />
           <div className="absolute inset-0 watermark-overlay opacity-40" />
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-6">
              <span className="text-4xl md:text-6xl font-black text-white/20 tracking-[1em] select-none whitespace-nowrap rotate-12">AMY CUSTOM</span>
@@ -259,10 +288,7 @@ const ArtworkDetail: React.FC<{ artworks: Artwork[] }> = ({ artworks }) => {
              <span className="text-2xl font-black text-gray-400 uppercase tracking-widest">TOTAL A PAGAR</span>
              <span className="text-6xl md:text-7xl font-black tracking-tighter text-black">US {artwork.price.toFixed(2)}</span>
           </div>
-
-          {/* Contenedor PayPal solicitado */}
-          <div id="paypal-container-P9L8BLPS8V6N6" className="min-h-[150px]"></div>
-
+          <PayPalButton artworkId={artwork.id} />
           <div className="mt-12 flex items-center gap-4 text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 justify-center">
              <ShieldCheck size={18} className="text-green-500" /> Pago Cifrado • Entrega Digital Inmediata
           </div>
@@ -274,13 +300,16 @@ const ArtworkDetail: React.FC<{ artworks: Artwork[] }> = ({ artworks }) => {
 
 export default function App() {
   const [artworks] = useState<Artwork[]>(INITIAL_ARTWORKS);
-  const ADMIN_PASSWORD = "@Negrita2000"; 
+
+  const ADMIN_PASSWORD = "@Negrita2000"; // ⚠️ cámbiala luego o muévela a env
+
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [adminPasswordInput, setAdminPasswordInput] = useState("");
   const [authError, setAuthError] = useState(false);
 
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
+
     if (adminPasswordInput === ADMIN_PASSWORD) {
       setIsAdminAuthenticated(true);
       setAuthError(false);
@@ -298,6 +327,7 @@ export default function App() {
     <Router>
       <div className="min-h-screen bg-white">
         <Navbar />
+
         <Routes>
           <Route
             path="/"
@@ -311,10 +341,12 @@ export default function App() {
               </>
             }
           />
+
           <Route
             path="/artwork/:id"
             element={<ArtworkDetail artworks={artworks} />}
           />
+
           <Route
             path="/admin"
             element={
@@ -324,20 +356,27 @@ export default function App() {
                     onSubmit={handleAdminLogin}
                     className="bg-white p-12 rounded-[3rem] shadow-xl border border-gray-100 text-center"
                   >
-                    <h2 className="text-3xl font-black mb-8">Acceso Admin</h2>
+                    <h2 className="text-3xl font-black mb-8">
+                      Acceso Admin
+                    </h2>
+
                     <input
                       type="password"
                       value={adminPasswordInput}
-                      onChange={(e) => setAdminPasswordInput(e.target.value)}
+                      onChange={(e) =>
+                        setAdminPasswordInput(e.target.value)
+                      }
                       placeholder="Contraseña"
                       className="w-full px-6 py-4 rounded-2xl border border-gray-200 text-center font-bold mb-6"
                     />
+
                     <button
                       type="submit"
                       className="w-full py-5 bg-black text-white rounded-2xl font-bold hover:bg-gray-900 transition"
                     >
                       Entrar
                     </button>
+
                     {authError && (
                       <p className="text-red-500 mt-4 text-xs font-bold uppercase tracking-widest">
                         Acceso denegado
@@ -357,4 +396,5 @@ export default function App() {
       </div>
     </Router>
   );
-}
+};
+
