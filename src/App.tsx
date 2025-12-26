@@ -266,7 +266,7 @@ const ArtworkDetail: React.FC<{ artworks: Artwork[] }> = ({ artworks }) => {
       <button onClick={() => navigate(-1)} className="flex items-center gap-3 text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-20 hover:text-black transition-colors"><ChevronLeft size={20} /> Volver a la colección</button>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-28 items-start">
         <div className="relative rounded-[70px] overflow-hidden shadow-3xl bg-white border border-gray-100 group">
-          <img src={artwork.previewUrl} className="w-full h-auto blur-3xl opacity-90 scale-105" />
+          <img src={artwork.previewUrl} className="w-full h-auto blur-2xl opacity-90 scale-105" />
           <div className="absolute inset-0 watermark-overlay opacity-40" />
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-6">
              <span className="text-4xl md:text-6xl font-black text-white/20 tracking-[1em] select-none whitespace-nowrap rotate-12">AMY CUSTOM</span>
