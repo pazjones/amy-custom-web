@@ -4,22 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Amy Custom</title>
-    <script
-  src="https://www.paypal.com/sdk/js?client-id=AejV5JTSsf1NSjkWmwpZbmqCkxDcMzH7L4AiPf-qMiHvCIZLupqwYkzZq2gLkgRi8GcN-zUDSlANjd3y&components=hosted-buttons&disable-funding=venmo&currency=USD" 
-  crossorigin="anonymous" 
-  async>
-</script>
+    <script 
+      src="https://www.paypal.com/sdk/js?client-id=AejV5JTSsf1NSjkWmwpZbmqCkxDcMzH7L4AiPf-qMiHvCIZLupqwYkzZq2gLkgRi8GcN-zUDSlANjd3y&components=hosted-buttons&currency=USD"
+      async>
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script>
-  document.addEventListener("DOMContentLoaded", (event) => {
-    paypal.HostedButtons({
-      hostedButtonId: "P9L8BLPS8V6N6"
-    })
-    .render("#paypal-container-P9L8BLPS8V6N6")
-  })
-</script>
+
   </body>
 </html>

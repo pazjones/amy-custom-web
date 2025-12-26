@@ -5,7 +5,7 @@ import type { Artwork } from "./types";
 import { INITIAL_ARTWORKS, AVATAR_URL } from './constants';
 import AdminPanel from "./AdminPanel";
 
-// Declaración para que TypeScript no marque error con el SDK de PayPal
+// Declaración para TypeScript
 declare global {
   interface Window {
     paypal: any;
@@ -212,24 +212,27 @@ const ArtworkDetail: React.FC<{ artworks: Artwork[] }> = ({ artworks }) => {
   useEffect(() => {
     if (!artwork) return;
 
-    const renderPayPal = () => {
+    const renderButton = () => {
       const container = document.getElementById("paypal-container-P9L8BLPS8V6N6");
       if (container && window.paypal && window.paypal.HostedButtons) {
-        container.innerHTML = ''; // Limpia el contenedor antes de renderizar
+        container.innerHTML = ''; // Evitar duplicados
         window.paypal.HostedButtons({
           hostedButtonId: "P9L8BLPS8V6N6",
         }).render("#paypal-container-P9L8BLPS8V6N6");
       }
     };
 
+    // Intentamos renderizar. Si el SDK aún no carga (desde index.html), esperamos un poco.
     if (window.paypal) {
-      renderPayPal();
+      renderButton();
     } else {
-      const script = document.createElement("script");
-      script.src = "https://www.paypal.com/sdk/js?client-id=AejV5JTSsf1NSjkWmwpZbmqCkxDcMzH7L4AiPf-qMiHvCIZLupqwYkzZq2gLkgRi8GcN-zUDSlANjd3y&components=hosted-buttons&currency=USD";
-      script.async = true;
-      script.onload = renderPayPal;
-      document.body.appendChild(script);
+      const checkPaypal = setInterval(() => {
+        if (window.paypal) {
+          renderButton();
+          clearInterval(checkPaypal);
+        }
+      }, 500);
+      return () => clearInterval(checkPaypal);
     }
   }, [artwork]);
 
@@ -260,7 +263,7 @@ const ArtworkDetail: React.FC<{ artworks: Artwork[] }> = ({ artworks }) => {
              <span className="text-6xl md:text-7xl font-black tracking-tighter text-black">US {artwork.price.toFixed(2)}</span>
           </div>
 
-          {/* Contenedor PayPal solicitado */}
+          {/* Contenedor PayPal que React inyectará */}
           <div id="paypal-container-P9L8BLPS8V6N6" className="min-h-[150px]"></div>
 
           <div className="mt-12 flex items-center gap-4 text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 justify-center">
