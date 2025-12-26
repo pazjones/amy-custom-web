@@ -233,7 +233,7 @@ const Gallery: React.FC<{ artworks: Artwork[] }> = ({ artworks }) => (
     {artworks.map(art => (
       <Link key={art.id} to={`/artwork/${art.id}`} className="group block">
         <div className="aspect-[3/4] bg-gray-100 rounded-[50px] overflow-hidden mb-10 relative border border-gray-100 shadow-sm group-hover:shadow-3xl transition-all duration-700">
-          <img src={art.previewUrl} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 blur-xl opacity-90" />
+          <img src={art.previewUrl} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 opacity-90" />
           <div className="absolute inset-0 watermark-overlay opacity-40" />
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
              <span className="bg-black/20 backdrop-blur-md text-white/80 px-6 py-3 rounded-full font-black uppercase tracking-[0.4em] text-[10px] border border-white/10">Preview Protegido</span>
@@ -266,7 +266,7 @@ const ArtworkDetail: React.FC<{ artworks: Artwork[] }> = ({ artworks }) => {
       <button onClick={() => navigate(-1)} className="flex items-center gap-3 text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-20 hover:text-black transition-colors"><ChevronLeft size={20} /> Volver a la colección</button>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-28 items-start">
         <div className="relative rounded-[70px] overflow-hidden shadow-3xl bg-white border border-gray-100 group">
-          <img src={artwork.previewUrl} className="w-full h-auto blur-2xl opacity-90 scale-105" />
+          <img src={artwork.previewUrl} className="w-full h-auto blur-md opacity-90 scale-105" />
           <div className="absolute inset-0 watermark-overlay opacity-40" />
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-6">
              <span className="text-4xl md:text-6xl font-black text-white/20 tracking-[1em] select-none whitespace-nowrap rotate-12">AMY CUSTOM</span>
