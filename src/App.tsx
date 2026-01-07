@@ -163,7 +163,7 @@ export default function App() {
                   <img src={AVATAR_URL} alt="Amy" className="w-full h-full object-cover" />
                 </div>
                 <h1 className="text-7xl md:text-[10rem] font-black tracking-tighter mb-8 bg-clip-text text-transparent bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 leading-[0.9]">amy.custom</h1>
-                <p className="text-xl md:text-3xl font-bold text-gray-500 max-w-3xl leading-relaxed uppercase tracking-tighter">Ilustración digital con alma.</p>
+                <p className="text-xl md:text-3xl font-bold text-gray-500 max-w-3xl leading-relaxed uppercase tracking-tighter">Arte en dibujos y Ropa personalizada</p>
               </header>
               <Gallery artworks={artworks} />
               <section id="servicios" className="py-40 bg-black text-white px-6 text-center">

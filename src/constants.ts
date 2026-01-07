@@ -11,7 +11,7 @@ export const INITIAL_ARTWORKS: Artwork[] = [
     year: '2025',
     category: 'Arte en dibujos',
     technique: 'Plumones',
-    price: 10.00,
+    price: 25.00,
     previewUrl: 'https://pazjones.sirv.com/amy/navidad72dpi.jpg',
     highResUrl: 'https://pazjones.sirv.com/amy/navidad_alta300dpi.tif',
     fileType: 'TIF'
